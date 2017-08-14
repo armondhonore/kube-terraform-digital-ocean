@@ -1,0 +1,42 @@
+node {
+   
+   stage('Preparation') { // for display purposes
+      // Get some code from a GitHub repository
+      git 'https://github.com/armondhonore/kube-terraform-digital-ocean.git'
+      sh 'pwd && ls -ll'
+   }
+   stage('Build Master') {
+      // Run the maven build
+      echo "Build Kube Master"
+      sh '''
+         cd terraform/master/
+         terraform apply -var "do_token=$do_token"
+         terraform output master_ip > ../node/master_ip.txt
+      '''
+   }
+   stage('Build Nodes') {
+      echo "Build Kube Nodes"
+      sh '''
+         cd ~/jobs/kub-klustr/workspace/terraform/node
+         export MASTER_IP=$(cat master_ip.txt)
+         sed -i "7i TOKEN=$TOKEN" scripts/k8s-node.sh
+         sed -i "9i MASTER_IP=$MASTER_IP" scripts/k8s-node.sh
+         terraform apply -var "do_token=$do_token"
+      ''' 
+   }
+   stage('Deploy Demo on Cluster') {
+      echo "Deploy Demo On Cluster ..."
+      sh '''
+      export MASTER_IP=$(cat ~/jobs/kub-klustr/workspace/terraform/node/master_ip.txt)
+      ssh -oStrictHostKeyChecking=no root@$MASTER_IP sudo -i -u k8smaster sh /tmp/conf/demoinit.sh
+      '''
+   }
+   stage('Results & Status') {
+      echo "The stauts is ..."
+      sh '''
+         sleep 15
+         export MASTER_IP=$(cat ~/jobs/kub-klustr/workspace/terraform/node/master_ip.txt)
+         ssh -oStrictHostKeyChecking=no root@$MASTER_IP 'sudo -i -u k8smaster kubectl get all --all-namespaces'
+      '''
+   }
+}
