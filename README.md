@@ -1,6 +1,8 @@
 # kube-terraform-digital-ocean
 Automated Provisioning of a Kube Cluster on Digital Ocean Using Jenkins with Terraform and Packer
 
+![Packer Architecture](Packer-dg.png)
+
 This project is designed to show the process of using jenkins to provision a Kube cluster. (Not a production quality cluster)
 
 It uses packer to build the jenkins and base kube image for digital ocean.
