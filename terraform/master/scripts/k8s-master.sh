@@ -5,6 +5,7 @@ export MASTER_IP=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/
 kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address $MASTER_IP --token $TOKEN
 
 chmod +r /etc/kubernetes/admin.conf
+chmod +r /tmp/conf/*
 
 adduser --disabled-password --disabled-password --gecos "" k8smaster
 usermod -aG sudo k8smaster
